@@ -69,7 +69,7 @@ func reverse(iface interface{}) interface{} {
 }
 
 func pfunc(i int) string {
-	return fmt.Sprintf("p[%d]", i)
+	return fmt.Sprintf("p%d", i)
 }
 
 type subround struct {
@@ -104,6 +104,7 @@ package skein
 func encrypt512(p *[8]uint64, s *[19][8]uint64) {
 	//fmt.Printf("Initial state: %x\n", p)
 	//fmt.Printf("Key schedule: %x\n", s[0])
+	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
 	for i := 0; i < 72; i += 8 {
 		{{ range $i := count 8 }}
 			{{ if eq $i 0 4 }}
@@ -121,14 +122,15 @@ func encrypt512(p *[8]uint64, s *[19][8]uint64) {
 		{{ end }}
 	}
 	{{ range $j := count 8 }}
-		{{p $j}} += s[ len(s)-1 ][ {{$j}} ]
+		p[{{$j}}] = {{p $j}} + s[ len(s)-1 ][ {{$j}} ]
 	{{ end }}
 }
 
 // Decrypt decrypts a block p using the given subkeys.
 func decrypt512(p *[8]uint64, s *[19][8]uint64) {
+	var p0, p1, p2, p3, p4, p5, p6, p7 uint64
 	{{ range $j := count 8 }}
-		{{p $j}} -= s[ len(s)-1 ][ {{$j}} ]
+		{{p $j}} = p[{{$j}}] - s[ len(s)-1 ][ {{$j}} ]
 	{{ end }}
 	for i := 72-8; i >= 0; i -= 8 {
 		{{ range $i := count 8 | reverse }}
@@ -144,6 +146,7 @@ func decrypt512(p *[8]uint64, s *[19][8]uint64) {
 			{{ end }}
 		{{ end }}
 	}
+	p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7] = p0, p1, p2, p3, p4, p5, p6, p7
 }
 
 // Expand expands a key and tweak into subkeys.

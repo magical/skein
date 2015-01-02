@@ -1,3 +1,5 @@
+// This file implements the Threefish block cipher which Skein is built on.
+
 package skein
 
 import "crypto/cipher"
