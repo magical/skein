@@ -123,52 +123,37 @@ func mod(x, y int) int {
 var tmpl = template.Must(template.New("skein").Funcs(funcs).Parse(`
 package skein
 
-//import "fmt"
-
-{{ define "inject" }}
-	{{ $i := . }}
-	{{ range $j := count 8 }}
-		{{p $j}} += {{subkey $i $j}}
-	{{ end }}
-	//fmt.Printf("State after key injection: %x\n", p)
-{{ end }}
-
 // Encrypt encrypts a block p with the given key and tweak.
 func encrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
-	//fmt.Printf("Initial state: %x\n", p)
-	//fmt.Printf("Key schedule: %x\n", s[0])
 	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
 	t2 := t[0] ^ t[1]
 	k8 := c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
 	{{ range $i := count 72 }}
 		{{ if eq (mod $i 4) 0 }}
-			{{ template "inject" $i }}
+			{{ range $j := count 8 }}
+				{{p $j}} += {{subkey $i $j}}
+			{{ end }}
 		{{ end }}
 		{{ range round $i }}
 			{{p .X}} += {{p .Y}}
 			{{p .Y}} = {{p .Y}}<<{{.R}} | {{p .Y}}>>(64-{{.R}})
 			{{p .Y}} ^= {{p .X}}
 		{{ end }}
-		//fmt.Printf("State after round %d: %x\n", i+{{$i}}+1, p)
 	{{ end }}
-	{{ template "inject" 72 }}
+	{{ range $j := count 8 }}
+		{{p $j}} += {{subkey 72 $j}}
+	{{ end }}
 	p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7] = p0, p1, p2, p3, p4, p5, p6, p7
 }
-
-{{ define "uninject" }}
-	{{ $i := . }}
-	{{ range $j := count 8 }}
-		{{p $j}} -= {{subkey $i $j}}
-	{{ end }}
-	//fmt.Printf("State after key injection: %x\n", p)
-{{ end }}
 
 // Decrypt decrypts a block p using the given key and tweak.
 func decrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
 	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
 	t2 := t[0] ^ t[1]
 	k8 := c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
-	{{ template "uninject" 72 }}
+	{{ range $j := count 8 }}
+		{{p $j}} -= {{subkey 72 $j}}
+	{{ end }}
 	{{ range $i := count 72 | reverse }}
 		{{ range round $i | reverse }}
 			{{p .Y}} ^= {{p .X}}
@@ -176,23 +161,11 @@ func decrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
 			{{p .X}} -= {{p .Y}}
 		{{ end }}
 		{{ if eq (mod $i 4) 0 }}
-			{{ template "uninject" $i }}
+			{{ range $j := count 8 }}
+				{{p $j}} -= {{subkey $i $j}}
+			{{ end }}
 		{{ end }}
 	{{ end }}
 	p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7] = p0, p1, p2, p3, p4, p5, p6, p7
-}
-
-// Expand expands a key and tweak into subkeys.
-func expand(s *[19][8]uint64, k *[9]uint64, t *[3]uint64) {
-	t[2] = t[0] ^ t[1]
-	k[8] = c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
-	for i := 0; i < len(*s); i++ {
-		{{ range $j := count 8 }}
-			s[i][ {{$j}} ] = k[ (i + {{$j}})%9 ]
-		{{ end }}
-		s[i][5] += t[ (i + 0)%3 ]
-		s[i][6] += t[ (i + 1)%3 ]
-		s[i][7] += uint64(i)
-	}
 }
 `))
