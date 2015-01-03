@@ -109,7 +109,7 @@ func encrypt512(p *[8]uint64, s *[19][8]uint64) {
 		{{ range $i := count 8 }}
 			{{ if eq $i 0 4 }}
 				{{ range $j := count 8 }}
-					{{p $j}} += s[ i/4 + {{$i}}/4 ][ {{$j}} ]
+					{{p $j}} += s[ uint(i)/4 + {{$i}}/4 ][ {{$j}} ]
 				{{ end }}
 				//fmt.Printf("State after key injection: %x\n", p)
 			{{ end }}
@@ -141,7 +141,7 @@ func decrypt512(p *[8]uint64, s *[19][8]uint64) {
 			{{ end }}
 			{{ if eq $i 0 4 }}
 				{{ range $j := count 8 }}
-					{{p $j}} -= s[ i/4 + {{$i}}/4 ][ {{$j}} ]
+					{{p $j}} -= s[ uint(i)/4 + {{$i}}/4 ][ {{$j}} ]
 				{{ end }}
 			{{ end }}
 		{{ end }}
