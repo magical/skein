@@ -10,7 +10,6 @@ var _ cipher.Block = &Threefish{}
 type Threefish struct {
 	k [9]uint64
 	t [3]uint64
-	s [19][8]uint64
 }
 
 // NewCipher returns a Threefish object with the given key.
@@ -38,7 +37,7 @@ func (b *Threefish) SetTweak(t []byte) {
 }
 
 func (b *Threefish) expand() {
-	expand(&b.s, &b.k, &b.t)
+	//expand(&b.s, &b.k, &b.t)
 }
 
 func (*Threefish) BlockSize() int { return 512 / 8 }
@@ -54,7 +53,7 @@ func (b *Threefish) Encrypt(dst, src []byte) {
 	for i := range p {
 		p[i] = le64dec(src[i*8:])
 	}
-	encrypt512(&p, &b.s)
+	encrypt512(&p, &b.k, &b.t)
 	for i, x := range p {
 		le64enc(dst[i*8:][:0], x)
 	}
@@ -71,7 +70,7 @@ func (b *Threefish) Decrypt(dst, src []byte) {
 	for i := range p {
 		p[i] = le64dec(src[i*8:])
 	}
-	decrypt512(&p, &b.s)
+	decrypt512(&p, &b.k, &b.t)
 	for i, x := range p {
 		le64enc(dst[i*8:][:0], x)
 	}

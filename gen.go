@@ -88,30 +88,44 @@ func round(i int) []subround {
 	}
 }
 
+func subkey(i, j int) string {
+	return fmt.Sprintf("s%d_%d", i/4, j)
+}
+
 // mix:   x += y; y <<<= r; y ^= x
 // unmix: y ^= x; y >>>= r; x -= y
 
 // Skein-512 has 72 rounds.
 // Each round consists of four parallel MIX operations and a permutation.
-// Subkeys are integrated every four rounds.
+// Subkeys are injected every four rounds.
 
 var tmpl = template.Must(template.New("skein").Funcs(funcs).Parse(`
 package skein
 
 //import "fmt"
 
-// Encrypt encrypts a block p with the given subkeys.
-func encrypt512(p *[8]uint64, s *[19][8]uint64) {
+{{ define "inject" }}
+	{{ $i := printf "(uint(%v)/4)" . }}
+	{{ range $j := count 8 }}
+		{{p $j}} += k[ ({{$i}} + {{$j}}) % 9 ]
+	{{ end }}
+	{{p 5}} += t[ {{$i}} % 3 ]
+	{{p 6}} += t[ ({{$i}} + 1) % 3 ]
+	{{p 7}} += uint64({{$i}})
+	//fmt.Printf("State after key injection: %x\n", p)
+{{ end }}
+
+// Encrypt encrypts a block p with the given key and tweak.
+func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 	//fmt.Printf("Initial state: %x\n", p)
 	//fmt.Printf("Key schedule: %x\n", s[0])
 	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
+	t[2] = t[0] ^ t[1]
+	k[8] = c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
 	for i := 0; i < 72; i += 8 {
 		{{ range $i := count 8 }}
 			{{ if eq $i 0 4 }}
-				{{ range $j := count 8 }}
-					{{p $j}} += s[ uint(i)/4 + {{$i}}/4 ][ {{$j}} ]
-				{{ end }}
-				//fmt.Printf("State after key injection: %x\n", p)
+				{{ template "inject" printf "i+%d" $i }}
 			{{ end }}
 			{{ range round $i }}
 				{{p .X}} += {{p .Y}}
@@ -121,17 +135,27 @@ func encrypt512(p *[8]uint64, s *[19][8]uint64) {
 			//fmt.Printf("State after round %d: %x\n", i+{{$i}}+1, p)
 		{{ end }}
 	}
-	{{ range $j := count 8 }}
-		p[{{$j}}] = {{p $j}} + s[ len(s)-1 ][ {{$j}} ]
-	{{ end }}
+	{{ template "inject" 72 }}
+	p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7] = p0, p1, p2, p3, p4, p5, p6, p7
 }
 
-// Decrypt decrypts a block p using the given subkeys.
-func decrypt512(p *[8]uint64, s *[19][8]uint64) {
-	var p0, p1, p2, p3, p4, p5, p6, p7 uint64
+{{ define "uninject" }}
+	{{ $i := printf "(uint(%v)/4)" . }}
 	{{ range $j := count 8 }}
-		{{p $j}} = p[{{$j}}] - s[ len(s)-1 ][ {{$j}} ]
+		{{p $j}} -= k[ ({{$i}} + {{$j}}) % 9 ]
 	{{ end }}
+	{{p 5}} -= t[ {{$i}} % 3 ]
+	{{p 6}} -= t[ ({{$i}} + 1) % 3 ]
+	{{p 7}} -= uint64({{$i}})
+	//fmt.Printf("State after key injection: %x\n", p)
+{{ end }}
+
+// Decrypt decrypts a block p using the given subkeys.
+func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
+	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
+	t[2] = t[0] ^ t[1]
+	k[8] = c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
+	{{ template "uninject" 72 }}
 	for i := 72-8; i >= 0; i -= 8 {
 		{{ range $i := count 8 | reverse }}
 			{{ range round $i | reverse }}
@@ -140,9 +164,7 @@ func decrypt512(p *[8]uint64, s *[19][8]uint64) {
 				{{p .X}} -= {{p .Y}}
 			{{ end }}
 			{{ if eq $i 0 4 }}
-				{{ range $j := count 8 }}
-					{{p $j}} -= s[ uint(i)/4 + {{$i}}/4 ][ {{$j}} ]
-				{{ end }}
+				{{ template "uninject" printf "i+%d" $i }}
 			{{ end }}
 		{{ end }}
 	}
