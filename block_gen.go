@@ -3,15 +3,12 @@ package skein
 //import "fmt"
 
 // Encrypt encrypts a block p with the given key and tweak.
-func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
+func encrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
 	//fmt.Printf("Initial state: %x\n", p)
 	//fmt.Printf("Key schedule: %x\n", s[0])
 	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
-	//var k0, k1, k2, k3, k4, k5, k6, k7 = k[0], k[1], k[2], k[3], k[4], k[5], k[6], k[7]
-	//var t0, t1, t2 = t[0], t[1], t[0] ^ t[1]
-	//k8 := c240 ^ k0 ^ k1 ^ k2 ^ k3 ^ k4 ^ k5 ^ k6 ^ k7
-	t[2] = t[0] ^ t[1]
-	k[8] = c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
+	t2 := t[0] ^ t[1]
+	k8 := c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
 
 	p0 += k[0]
 
@@ -115,9 +112,9 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p5 += k[6] + t[1]
 
-	p6 += k[7] + t[2]
+	p6 += k[7] + t2
 
-	p7 += k[8] + 1
+	p7 += k8 + 1
 
 	//fmt.Printf("State after key injection: %x\n", p)
 
@@ -203,9 +200,9 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 += k[6]
 
-	p5 += k[7] + t[2]
+	p5 += k[7] + t2
 
-	p6 += k[8] + t[0]
+	p6 += k8 + t[0]
 
 	p7 += k[0] + 2
 
@@ -293,7 +290,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 += k[7]
 
-	p5 += k[8] + t[0]
+	p5 += k8 + t[0]
 
 	p6 += k[0] + t[1]
 
@@ -381,11 +378,11 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p3 += k[7]
 
-	p4 += k[8]
+	p4 += k8
 
 	p5 += k[0] + t[1]
 
-	p6 += k[1] + t[2]
+	p6 += k[1] + t2
 
 	p7 += k[2] + 4
 
@@ -469,11 +466,11 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p2 += k[7]
 
-	p3 += k[8]
+	p3 += k8
 
 	p4 += k[0]
 
-	p5 += k[1] + t[2]
+	p5 += k[1] + t2
 
 	p6 += k[2] + t[0]
 
@@ -557,7 +554,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p1 += k[7]
 
-	p2 += k[8]
+	p2 += k8
 
 	p3 += k[0]
 
@@ -645,7 +642,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p0 += k[7]
 
-	p1 += k[8]
+	p1 += k8
 
 	p2 += k[0]
 
@@ -655,7 +652,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p5 += k[3] + t[1]
 
-	p6 += k[4] + t[2]
+	p6 += k[4] + t2
 
 	p7 += k[5] + 7
 
@@ -733,7 +730,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	//fmt.Printf("State after round %d: %x\n", i+31+1, p)
 
-	p0 += k[8]
+	p0 += k8
 
 	p1 += k[0]
 
@@ -743,7 +740,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 += k[3]
 
-	p5 += k[4] + t[2]
+	p5 += k[4] + t2
 
 	p6 += k[5] + t[0]
 
@@ -925,9 +922,9 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p5 += k[6] + t[1]
 
-	p6 += k[7] + t[2]
+	p6 += k[7] + t2
 
-	p7 += k[8] + 10
+	p7 += k8 + 10
 
 	//fmt.Printf("State after key injection: %x\n", p)
 
@@ -1013,9 +1010,9 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 += k[6]
 
-	p5 += k[7] + t[2]
+	p5 += k[7] + t2
 
-	p6 += k[8] + t[0]
+	p6 += k8 + t[0]
 
 	p7 += k[0] + 11
 
@@ -1103,7 +1100,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 += k[7]
 
-	p5 += k[8] + t[0]
+	p5 += k8 + t[0]
 
 	p6 += k[0] + t[1]
 
@@ -1191,11 +1188,11 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p3 += k[7]
 
-	p4 += k[8]
+	p4 += k8
 
 	p5 += k[0] + t[1]
 
-	p6 += k[1] + t[2]
+	p6 += k[1] + t2
 
 	p7 += k[2] + 13
 
@@ -1279,11 +1276,11 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p2 += k[7]
 
-	p3 += k[8]
+	p3 += k8
 
 	p4 += k[0]
 
-	p5 += k[1] + t[2]
+	p5 += k[1] + t2
 
 	p6 += k[2] + t[0]
 
@@ -1367,7 +1364,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p1 += k[7]
 
-	p2 += k[8]
+	p2 += k8
 
 	p3 += k[0]
 
@@ -1455,7 +1452,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p0 += k[7]
 
-	p1 += k[8]
+	p1 += k8
 
 	p2 += k[0]
 
@@ -1465,7 +1462,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p5 += k[3] + t[1]
 
-	p6 += k[4] + t[2]
+	p6 += k[4] + t2
 
 	p7 += k[5] + 16
 
@@ -1543,7 +1540,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	//fmt.Printf("State after round %d: %x\n", i+67+1, p)
 
-	p0 += k[8]
+	p0 += k8
 
 	p1 += k[0]
 
@@ -1553,7 +1550,7 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 += k[3]
 
-	p5 += k[4] + t[2]
+	p5 += k[4] + t2
 
 	p6 += k[5] + t[0]
 
@@ -1654,14 +1651,11 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 	p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7] = p0, p1, p2, p3, p4, p5, p6, p7
 }
 
-// Decrypt decrypts a block p using the given subkeys.
-func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
+// Decrypt decrypts a block p using the given key and tweak.
+func decrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
 	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
-	//var k0, k1, k2, k3, k4, k5, k6, k7 = k[0], k[1], k[2], k[3], k[4], k[5], k[6], k[7]
-	//var t0, t1, t2 = t[0], t[1], t[0] ^ t[1]
-	//k8 := c240 ^ k0 ^ k1 ^ k2 ^ k3 ^ k4 ^ k5 ^ k6 ^ k7
-	t[2] = t[0] ^ t[1]
-	k[8] = c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
+	t2 := t[0] ^ t[1]
+	k8 := c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
 
 	p0 -= k[0]
 
@@ -1745,7 +1739,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 	p1 = p1<<(64-39) | p1>>39
 	p0 -= p1
 
-	p0 -= k[8]
+	p0 -= k8
 
 	p1 -= k[0]
 
@@ -1755,7 +1749,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 -= k[3]
 
-	p5 -= k[4] + t[2]
+	p5 -= k[4] + t2
 
 	p6 -= k[5] + t[0]
 
@@ -1829,7 +1823,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p0 -= k[7]
 
-	p1 -= k[8]
+	p1 -= k8
 
 	p2 -= k[0]
 
@@ -1839,7 +1833,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p5 -= k[3] + t[1]
 
-	p6 -= k[4] + t[2]
+	p6 -= k[4] + t2
 
 	p7 -= k[5] + 16
 
@@ -1913,7 +1907,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p1 -= k[7]
 
-	p2 -= k[8]
+	p2 -= k8
 
 	p3 -= k[0]
 
@@ -1997,11 +1991,11 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p2 -= k[7]
 
-	p3 -= k[8]
+	p3 -= k8
 
 	p4 -= k[0]
 
-	p5 -= k[1] + t[2]
+	p5 -= k[1] + t2
 
 	p6 -= k[2] + t[0]
 
@@ -2081,11 +2075,11 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p3 -= k[7]
 
-	p4 -= k[8]
+	p4 -= k8
 
 	p5 -= k[0] + t[1]
 
-	p6 -= k[1] + t[2]
+	p6 -= k[1] + t2
 
 	p7 -= k[2] + 13
 
@@ -2165,7 +2159,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 -= k[7]
 
-	p5 -= k[8] + t[0]
+	p5 -= k8 + t[0]
 
 	p6 -= k[0] + t[1]
 
@@ -2247,9 +2241,9 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 -= k[6]
 
-	p5 -= k[7] + t[2]
+	p5 -= k[7] + t2
 
-	p6 -= k[8] + t[0]
+	p6 -= k8 + t[0]
 
 	p7 -= k[0] + 11
 
@@ -2331,9 +2325,9 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p5 -= k[6] + t[1]
 
-	p6 -= k[7] + t[2]
+	p6 -= k[7] + t2
 
-	p7 -= k[8] + 10
+	p7 -= k8 + 10
 
 	//fmt.Printf("State after key injection: %x\n", p)
 
@@ -2483,7 +2477,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 	p1 = p1<<(64-46) | p1>>46
 	p0 -= p1
 
-	p0 -= k[8]
+	p0 -= k8
 
 	p1 -= k[0]
 
@@ -2493,7 +2487,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 -= k[3]
 
-	p5 -= k[4] + t[2]
+	p5 -= k[4] + t2
 
 	p6 -= k[5] + t[0]
 
@@ -2567,7 +2561,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p0 -= k[7]
 
-	p1 -= k[8]
+	p1 -= k8
 
 	p2 -= k[0]
 
@@ -2577,7 +2571,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p5 -= k[3] + t[1]
 
-	p6 -= k[4] + t[2]
+	p6 -= k[4] + t2
 
 	p7 -= k[5] + 7
 
@@ -2651,7 +2645,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p1 -= k[7]
 
-	p2 -= k[8]
+	p2 -= k8
 
 	p3 -= k[0]
 
@@ -2735,11 +2729,11 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p2 -= k[7]
 
-	p3 -= k[8]
+	p3 -= k8
 
 	p4 -= k[0]
 
-	p5 -= k[1] + t[2]
+	p5 -= k[1] + t2
 
 	p6 -= k[2] + t[0]
 
@@ -2819,11 +2813,11 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p3 -= k[7]
 
-	p4 -= k[8]
+	p4 -= k8
 
 	p5 -= k[0] + t[1]
 
-	p6 -= k[1] + t[2]
+	p6 -= k[1] + t2
 
 	p7 -= k[2] + 4
 
@@ -2903,7 +2897,7 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 -= k[7]
 
-	p5 -= k[8] + t[0]
+	p5 -= k8 + t[0]
 
 	p6 -= k[0] + t[1]
 
@@ -2985,9 +2979,9 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p4 -= k[6]
 
-	p5 -= k[7] + t[2]
+	p5 -= k[7] + t2
 
-	p6 -= k[8] + t[0]
+	p6 -= k8 + t[0]
 
 	p7 -= k[0] + 2
 
@@ -3069,9 +3063,9 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 
 	p5 -= k[6] + t[1]
 
-	p6 -= k[7] + t[2]
+	p6 -= k[7] + t2
 
-	p7 -= k[8] + 1
+	p7 -= k8 + 1
 
 	//fmt.Printf("State after key injection: %x\n", p)
 

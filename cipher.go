@@ -8,8 +8,8 @@ var _ cipher.Block = &Threefish{}
 
 // Threefish implements the Threefish-512 block encryption primitive.
 type Threefish struct {
-	k [9]uint64
-	t [3]uint64
+	k [8]uint64
+	t [2]uint64
 }
 
 // NewCipher returns a Threefish object with the given key.

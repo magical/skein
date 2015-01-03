@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"strings"
 	"text/template"
 )
 
@@ -91,17 +92,21 @@ func round(i int) []subround {
 }
 
 func subkey(i, j int) string {
+	var s string
 	k := (i/4 + j) % 9
 	switch j {
 	default:
-		return fmt.Sprintf("k[%d]", k)
+		s = fmt.Sprintf("k[%d]", k)
 	case 5:
-		return fmt.Sprintf("k[%d] + t[%d]", k, i/4%3)
+		s = fmt.Sprintf("k[%d] + t[%d]", k, i/4%3)
 	case 6:
-		return fmt.Sprintf("k[%d] + t[%d]", k, (i/4+1)%3)
+		s = fmt.Sprintf("k[%d] + t[%d]", k, (i/4+1)%3)
 	case 7:
-		return fmt.Sprintf("k[%d] + %d", k, i/4)
+		s = fmt.Sprintf("k[%d] + %d", k, i/4)
 	}
+	s = strings.Replace(s, "k[8]", "k8", 1)
+	s = strings.Replace(s, "t[2]", "t2", 1)
+	return s
 }
 
 func mod(x, y int) int {
@@ -129,12 +134,12 @@ package skein
 {{ end }}
 
 // Encrypt encrypts a block p with the given key and tweak.
-func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
+func encrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
 	//fmt.Printf("Initial state: %x\n", p)
 	//fmt.Printf("Key schedule: %x\n", s[0])
 	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
-	t[2] = t[0] ^ t[1]
-	k[8] = c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
+	t2 := t[0] ^ t[1]
+	k8 := c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
 	{{ range $i := count 72 }}
 		{{ if eq (mod $i 4) 0 }}
 			{{ template "inject" $i }}
@@ -158,11 +163,11 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 	//fmt.Printf("State after key injection: %x\n", p)
 {{ end }}
 
-// Decrypt decrypts a block p using the given subkeys.
-func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
+// Decrypt decrypts a block p using the given key and tweak.
+func decrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
 	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
-	t[2] = t[0] ^ t[1]
-	k[8] = c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
+	t2 := t[0] ^ t[1]
+	k8 := c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
 	{{ template "uninject" 72 }}
 	{{ range $i := count 72 | reverse }}
 		{{ range round $i | reverse }}
