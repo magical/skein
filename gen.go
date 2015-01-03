@@ -45,6 +45,8 @@ var funcs = template.FuncMap{
 	"round":   round,
 	"reverse": reverse,
 	"p":       pfunc,
+	"subkey":  subkey,
+	"mod":     mod,
 }
 
 func count(n int) []int {
@@ -89,7 +91,21 @@ func round(i int) []subround {
 }
 
 func subkey(i, j int) string {
-	return fmt.Sprintf("s%d_%d", i/4, j)
+	k := (i/4 + j) % 9
+	switch j {
+	default:
+		return fmt.Sprintf("k[%d]", k)
+	case 5:
+		return fmt.Sprintf("k[%d] + t[%d]", k, i/4%3)
+	case 6:
+		return fmt.Sprintf("k[%d] + t[%d]", k, (i/4+1)%3)
+	case 7:
+		return fmt.Sprintf("k[%d] + %d", k, i/4)
+	}
+}
+
+func mod(x, y int) int {
+	return x % y
 }
 
 // mix:   x += y; y <<<= r; y ^= x
@@ -105,13 +121,10 @@ package skein
 //import "fmt"
 
 {{ define "inject" }}
-	{{ $i := printf "(uint(%v)/4)" . }}
+	{{ $i := . }}
 	{{ range $j := count 8 }}
-		{{p $j}} += k[ ({{$i}} + {{$j}}) % 9 ]
+		{{p $j}} += {{subkey $i $j}}
 	{{ end }}
-	{{p 5}} += t[ {{$i}} % 3 ]
-	{{p 6}} += t[ ({{$i}} + 1) % 3 ]
-	{{p 7}} += uint64({{$i}})
 	//fmt.Printf("State after key injection: %x\n", p)
 {{ end }}
 
@@ -122,31 +135,26 @@ func encrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
 	t[2] = t[0] ^ t[1]
 	k[8] = c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
-	for i := 0; i < 72; i += 8 {
-		{{ range $i := count 8 }}
-			{{ if eq $i 0 4 }}
-				{{ template "inject" printf "i+%d" $i }}
-			{{ end }}
-			{{ range round $i }}
-				{{p .X}} += {{p .Y}}
-				{{p .Y}} = {{p .Y}}<<{{.R}} | {{p .Y}}>>(64-{{.R}})
-				{{p .Y}} ^= {{p .X}}
-			{{ end }}
-			//fmt.Printf("State after round %d: %x\n", i+{{$i}}+1, p)
+	{{ range $i := count 72 }}
+		{{ if eq (mod $i 4) 0 }}
+			{{ template "inject" $i }}
 		{{ end }}
-	}
+		{{ range round $i }}
+			{{p .X}} += {{p .Y}}
+			{{p .Y}} = {{p .Y}}<<{{.R}} | {{p .Y}}>>(64-{{.R}})
+			{{p .Y}} ^= {{p .X}}
+		{{ end }}
+		//fmt.Printf("State after round %d: %x\n", i+{{$i}}+1, p)
+	{{ end }}
 	{{ template "inject" 72 }}
 	p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7] = p0, p1, p2, p3, p4, p5, p6, p7
 }
 
 {{ define "uninject" }}
-	{{ $i := printf "(uint(%v)/4)" . }}
+	{{ $i := . }}
 	{{ range $j := count 8 }}
-		{{p $j}} -= k[ ({{$i}} + {{$j}}) % 9 ]
+		{{p $j}} -= {{subkey $i $j}}
 	{{ end }}
-	{{p 5}} -= t[ {{$i}} % 3 ]
-	{{p 6}} -= t[ ({{$i}} + 1) % 3 ]
-	{{p 7}} -= uint64({{$i}})
 	//fmt.Printf("State after key injection: %x\n", p)
 {{ end }}
 
@@ -156,18 +164,16 @@ func decrypt512(p *[8]uint64, k *[9]uint64, t *[3]uint64) {
 	t[2] = t[0] ^ t[1]
 	k[8] = c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
 	{{ template "uninject" 72 }}
-	for i := 72-8; i >= 0; i -= 8 {
-		{{ range $i := count 8 | reverse }}
-			{{ range round $i | reverse }}
-				{{p .Y}} ^= {{p .X}}
-				{{p .Y}} = {{p .Y}}<<(64-{{.R}}) | {{p .Y}}>>{{.R}}
-				{{p .X}} -= {{p .Y}}
-			{{ end }}
-			{{ if eq $i 0 4 }}
-				{{ template "uninject" printf "i+%d" $i }}
-			{{ end }}
+	{{ range $i := count 72 | reverse }}
+		{{ range round $i | reverse }}
+			{{p .Y}} ^= {{p .X}}
+			{{p .Y}} = {{p .Y}}<<(64-{{.R}}) | {{p .Y}}>>{{.R}}
+			{{p .X}} -= {{p .Y}}
 		{{ end }}
-	}
+		{{ if eq (mod $i 4) 0 }}
+			{{ template "uninject" $i }}
+		{{ end }}
+	{{ end }}
 	p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7] = p0, p1, p2, p3, p4, p5, p6, p7
 }
 
