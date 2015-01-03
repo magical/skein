@@ -105,9 +105,9 @@ func TestDecrypt(t *testing.T) {
 	for _, tt := range blockTests {
 		b := NewCipher(tt.key)
 		b.SetTweak(tt.tweak)
-		b.Encrypt(pad[:], tt.p)
-		if !bytes.Equal(pad[:], tt.c) {
-			t.Errorf("Decrypt(%x): want %x, got %x", tt.p, tt.c, pad[:])
+		b.Decrypt(pad[:], tt.c)
+		if !bytes.Equal(pad[:], tt.p) {
+			t.Errorf("Decrypt(%x): want %x, got %x", tt.c, tt.p, pad[:])
 		}
 	}
 }
