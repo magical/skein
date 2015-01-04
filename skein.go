@@ -95,8 +95,7 @@ func (d *digest) flush(end bool) {
 	}
 }
 
-func (d0 *digest) Sum(b []byte) []byte {
-	d := *d0
+func (d *digest) sum() [64]byte {
 	// Flush last block. If there are no blocks, flush an empty block.
 	d.flush(true)
 	// Initialize tweak.
@@ -107,10 +106,23 @@ func (d0 *digest) Sum(b []byte) []byte {
 	// Encrypt the zero block.
 	var msg [8]uint64
 	encrypt512(&msg, &msg, &d.g, &t)
-	// Append output
+	// Encode output
 	var out [64]byte
 	for i := range msg {
 		le64enc(out[i*8:], msg[i])
 	}
+	return out
+}
+
+func (d0 *digest) Sum(b []byte) []byte {
+	d := *d0
+	out := d.sum()
 	return append(b, out[:]...)
+}
+
+func Sum(b []byte) [64]byte {
+	var d digest
+	d.Reset()
+	d.Write(b)
+	return d.sum()
 }
