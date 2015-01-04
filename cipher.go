@@ -48,7 +48,7 @@ func (b *Threefish) Encrypt(dst, src []byte) {
 	}
 	encrypt512(&p, &p, &b.k, &b.t)
 	for i, x := range p {
-		le64enc(dst[i*8:][:0], x)
+		le64enc(dst[i*8:], x)
 	}
 }
 
@@ -65,7 +65,7 @@ func (b *Threefish) Decrypt(dst, src []byte) {
 	}
 	decrypt512(&p, &p, &b.k, &b.t)
 	for i, x := range p {
-		le64enc(dst[i*8:][:0], x)
+		le64enc(dst[i*8:], x)
 	}
 }
 
@@ -74,5 +74,5 @@ func le64dec(b []byte) uint64 {
 }
 
 func le64enc(b []byte, x uint64) []byte {
-	return append(b, byte(x), byte(x>>8), byte(x>>16), byte(x>>24), byte(x>>32), byte(x>>40), byte(x>>48), byte(x>>56))
+	return append(b[:0], byte(x), byte(x>>8), byte(x>>16), byte(x>>24), byte(x>>32), byte(x>>40), byte(x>>48), byte(x>>56))
 }
