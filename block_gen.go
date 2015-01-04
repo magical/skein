@@ -1,8 +1,9 @@
 package skein
 
-// Encrypt encrypts a block p with the given key and tweak.
-func encrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
-	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
+// Encrypt a block from src to dst using the given key and tweak.
+// Src and dst may overlap.
+func encrypt512(dst, src *[8]uint64, k *[8]uint64, t *[2]uint64) {
+	var p0, p1, p2, p3, p4, p5, p6, p7 = src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7]
 	t2 := t[0] ^ t[1]
 	k8 := c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
 
@@ -1462,12 +1463,13 @@ func encrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
 
 	p7 += k[7] + 18
 
-	p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7] = p0, p1, p2, p3, p4, p5, p6, p7
+	dst[0], dst[1], dst[2], dst[3], dst[4], dst[5], dst[6], dst[7] = p0, p1, p2, p3, p4, p5, p6, p7
 }
 
-// Decrypt decrypts a block p using the given key and tweak.
-func decrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
-	var p0, p1, p2, p3, p4, p5, p6, p7 = p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
+// Decrypt a block from src to dst using the given key and tweak.
+// Src and dst may overlap.
+func decrypt512(dst, src *[8]uint64, k *[8]uint64, t *[2]uint64) {
+	var p0, p1, p2, p3, p4, p5, p6, p7 = src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7]
 	t2 := t[0] ^ t[1]
 	k8 := c240 ^ k[0] ^ k[1] ^ k[2] ^ k[3] ^ k[4] ^ k[5] ^ k[6] ^ k[7]
 
@@ -2927,5 +2929,5 @@ func decrypt512(p *[8]uint64, k *[8]uint64, t *[2]uint64) {
 
 	p7 -= k[7] + 0
 
-	p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7] = p0, p1, p2, p3, p4, p5, p6, p7
+	dst[0], dst[1], dst[2], dst[3], dst[4], dst[5], dst[6], dst[7] = p0, p1, p2, p3, p4, p5, p6, p7
 }

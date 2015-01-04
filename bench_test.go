@@ -9,7 +9,7 @@ func BenchmarkEncrypt512(b *testing.B) {
 	b.ResetTimer()
 	b.SetBytes(64)
 	for i := 0; i < b.N; i++ {
-		encrypt512(&p, &k, &t)
+		encrypt512(&p, &p, &k, &t)
 	}
 }
 
@@ -20,6 +20,6 @@ func BenchmarkDecrypt512(b *testing.B) {
 	b.ResetTimer()
 	b.SetBytes(64)
 	for i := 0; i < b.N; i++ {
-		decrypt512(&p, &k, &t)
+		decrypt512(&p, &p, &k, &t)
 	}
 }
