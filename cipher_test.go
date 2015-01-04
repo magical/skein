@@ -95,7 +95,7 @@ func TestEncrypt(t *testing.T) {
 		b.SetTweak(tt.tweak)
 		b.Encrypt(pad[:], tt.p)
 		if !bytes.Equal(pad[:], tt.c) {
-			t.Errorf("Encrypt(%x): want %x, got %x", tt.p, tt.c, pad[:])
+			t.Errorf("Encrypt(%x) = %x, want %x", tt.p, pad[:], tt.c)
 		}
 	}
 }
@@ -107,7 +107,7 @@ func TestDecrypt(t *testing.T) {
 		b.SetTweak(tt.tweak)
 		b.Decrypt(pad[:], tt.c)
 		if !bytes.Equal(pad[:], tt.p) {
-			t.Errorf("Decrypt(%x): want %x, got %x", tt.c, tt.p, pad[:])
+			t.Errorf("Decrypt(%x) = %x, want %x", tt.c, pad[:], tt.p)
 		}
 	}
 }
