@@ -21,7 +21,6 @@ func NewCipher(key []byte) *Threefish {
 	for i := 0; i < 8; i++ {
 		b.k[i] = le64dec(key[i*8:])
 	}
-	b.expand()
 	return &b
 }
 
@@ -32,12 +31,6 @@ func (b *Threefish) SetTweak(t []byte) {
 	}
 	b.t[0] = le64dec(t[0:])
 	b.t[1] = le64dec(t[8:])
-	// Re-expand the key
-	b.expand()
-}
-
-func (b *Threefish) expand() {
-	//expand(&b.s, &b.k, &b.t)
 }
 
 func (*Threefish) BlockSize() int { return 512 / 8 }
